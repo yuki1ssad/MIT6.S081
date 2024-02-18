@@ -86,13 +86,23 @@ test1()
   j = 0;
   sigalarm(2, periodic);
   for(i = 0; i < 500000000; i++){
-    if(count >= 10)
+    if(count >= 10) {
+      printf("1----------count = %d, i = %d, j = %d\n", count, i, j);
       break;
-    foo(i, &j);
+    }
+    // foo(i, &j);
+    if((i % 2500000) == 0) {
+      write(2, ".", 1);
+    }
+    j += 1;
+    // printf("i = %d, j = %d\n", i, j);
+
   }
+  printf("2------------count = %d, i = %d, j = %d\n", count, i, j);
   if(count < 10){
     printf("\ntest1 failed: too few calls to the handler\n");
   } else if(i != j){
+    printf("3------------count = %d, i = %d, j = %d\n", count, i, j);
     // the loop should have called foo() i times, and foo() should
     // have incremented j once per call, so j should equal i.
     // once possible source of errors is that the handler may
