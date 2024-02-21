@@ -153,7 +153,7 @@ kerneltrap()
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING) {
-    info("kerneltrap: proc_%d give up the CPU.\n", myproc()->pid);
+    // info("kerneltrap: proc_%d give up the CPU.\n", myproc()->pid);
     yield();
   }
 
