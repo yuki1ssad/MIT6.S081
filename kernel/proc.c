@@ -439,6 +439,7 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  int prnt_lock = 0;
   
   c->proc = 0;
   for(;;){
@@ -451,15 +452,27 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+        // scheduler_info("scheduler: find proc_%d RUNNABLE.\n", p->pid);
         p->state = RUNNING;
+        // scheduler_info("scheduler: set proc_%d state to RUNNING.\n", p->pid);
         c->proc = p;
+        // scheduler_info("scheduler: save scheduler.ctx, load proc_%d.ctx.\n", p->pid);
+        // scheduler_info("scheduler: p->context.ra: %p.\n", p->context.ra);
         swtch(&c->context, &p->context);
+
+        // scheduler_info("scheduler: lock acquired in scheduler: %p, proc_%d\n", p->lock, p->pid);
+        prnt_lock = 1;
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
+        // scheduler_info("scheduler: proc_%d give up cpu, now scheduler have it.\n", p->pid);
         c->proc = 0;
       }
       release(&p->lock);
+      if (prnt_lock) {
+        // scheduler_info("scheduler: lock released in scheduler: %p, proc_%d\n", p->lock, p->pid);
+        prnt_lock = 0;
+      }
     }
   }
 }
@@ -487,7 +500,10 @@ sched(void)
     panic("sched interruptible");
 
   intena = mycpu()->intena;
+  // info("sched: proc_%d call swtch.\n", p->pid);
+  // info("sched: mycpu()->context.ra: %p\n", mycpu()->context.ra);
   swtch(&p->context, &mycpu()->context);
+  // info("sched: proc_%d from scheduler to sched\n", p->pid);
   mycpu()->intena = intena;
 }
 
@@ -497,9 +513,12 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
+  // info("yield: lock acquired in yield: %p, proc_%d\n", p->lock, p->pid);
   p->state = RUNNABLE;
+  // info("yield: set proc_%d state to RUNNABLE and call sched func.\n", p->pid);
   sched();
   release(&p->lock);
+  // info("yield: lock released in yield: %p, proc_%d\n", p->lock, p->pid);
 }
 
 // A fork child's very first scheduling by scheduler()
